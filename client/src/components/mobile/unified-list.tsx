@@ -16,9 +16,10 @@ import {
   Building2,
   FileText,
   Search,
-  Filter
+  ChevronDown
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { TravelHistory, Flight, Employer, Education, Address, PersonalInfo } from '@shared/schema';
 
 // Helper function
@@ -192,32 +193,63 @@ export function UnifiedList() {
         />
       </div>
 
-      {/* Filter tabs - Mobile optimized */}
-      <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1">
-        {filters.map((filterOption) => {
-          const Icon = filterOption.icon;
-          const count = filterOption.value === 'all' 
-            ? unifiedItems.length 
-            : unifiedItems.filter(item => item.type === filterOption.value).length;
-          
-          return (
-            <Button
-              key={filterOption.value}
-              variant={filter === filterOption.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter(filterOption.value)}
-              className="flex items-center gap-1.5 whitespace-nowrap shrink-0 h-8 px-2.5 text-xs"
-            >
-              <Icon className="h-3 w-3" />
-              <span>{filterOption.label}</span>
-              {count > 0 && (
-                <Badge variant="secondary" className="ml-0.5 text-[10px] px-1 h-4">
-                  {count}
-                </Badge>
-              )}
-            </Button>
-          );
-        })}
+      {/* Filter dropdown */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-full">
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const selectedFilter = filters.find(f => f.value === filter);
+                  const Icon = selectedFilter?.icon || FileText;
+                  const count = filter === 'all' 
+                    ? unifiedItems.length 
+                    : unifiedItems.filter(item => item.type === filter).length;
+                  return (
+                    <>
+                      <Icon className="h-4 w-4" />
+                      <span>{selectedFilter?.label || 'All'}</span>
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {count}
+                      </Badge>
+                    </>
+                  );
+                })()}
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {filters.map((filterOption) => {
+                const Icon = filterOption.icon;
+                const count = filterOption.value === 'all' 
+                  ? unifiedItems.length 
+                  : unifiedItems.filter(item => item.type === filterOption.value).length;
+                
+                return (
+                  <SelectItem key={filterOption.value} value={filterOption.value}>
+                    <div className="flex items-center gap-2 w-full">
+                      <Icon className="h-4 w-4" />
+                      <span>{filterOption.label}</span>
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {count}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {filter !== 'all' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setFilter('all')}
+            className="shrink-0"
+          >
+            Show All
+          </Button>
+        )}
       </div>
 
       {/* Unified list */}
