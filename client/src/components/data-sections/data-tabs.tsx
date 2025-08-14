@@ -8,8 +8,12 @@ import { EmployersTab } from '../employers/employers-tab';
 import { EducationTab } from '../education/education-tab';
 import { AddressesTab } from '../addresses/addresses-tab';
 import { PersonalTab } from '../personal/personal-tab';
+import { UnifiedList } from '../mobile/unified-list';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function DataTabs() {
+  const isMobile = useIsMobile();
+  
   const tabs = [
     { id: 'travel', label: 'Travel History', icon: MapPin, component: TravelTab },
     { id: 'flights', label: 'Flights', icon: Plane, component: FlightsTab },
@@ -19,6 +23,19 @@ export function DataTabs() {
     { id: 'personal', label: 'Personal Info', icon: User, component: PersonalTab },
   ];
 
+  // Mobile view with unified list
+  if (isMobile) {
+    return (
+      <Card className="border-0 shadow-sm">
+        <div className="p-4">
+          <h2 className="text-lg font-semibold mb-4">All Data</h2>
+          <UnifiedList />
+        </div>
+      </Card>
+    );
+  }
+
+  // Desktop view with tabs
   return (
     <Card className="border-0 shadow-sm">
       <Tabs defaultValue="travel" className="w-full">
