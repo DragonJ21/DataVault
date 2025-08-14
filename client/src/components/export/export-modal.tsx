@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { FileText, FileSpreadsheet, File, Code, Download } from 'lucide-react';
 import { exportData, type ExportFormat } from '@/lib/export';
@@ -27,10 +27,10 @@ export function ExportModal({ open, onOpenChange }: ExportModalProps) {
   const { toast } = useToast();
 
   const formatOptions = [
-    { value: 'pdf', label: 'PDF Report', icon: FileText, color: 'text-red-500' },
-    { value: 'excel', label: 'Excel Spreadsheet', icon: FileSpreadsheet, color: 'text-green-500' },
-    { value: 'csv', label: 'CSV Data', icon: File, color: 'text-blue-500' },
-    { value: 'json', label: 'JSON Data', icon: Code, color: 'text-gray-500' },
+    { value: 'pdf', label: 'PDF Report', icon: FileText },
+    { value: 'excel', label: 'Excel Spreadsheet', icon: FileSpreadsheet },
+    { value: 'csv', label: 'CSV Data', icon: File },
+    { value: 'json', label: 'JSON Data', icon: Code },
   ];
 
   const sectionOptions = [
@@ -91,28 +91,33 @@ export function ExportModal({ open, onOpenChange }: ExportModalProps) {
             <Download className="h-5 w-5" />
             Export Data
           </DialogTitle>
+          <DialogDescription>
+            Choose the format and data sections you want to export.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
           {/* Export Format */}
-          <div>
-            <Label className="text-sm font-medium mb-3 block">Export Format</Label>
-            <RadioGroup value={format} onValueChange={(value) => setFormat(value as ExportFormat)}>
-              <div className="space-y-2">
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Export Format</Label>
+            <Select value={format} onValueChange={(value) => setFormat(value as ExportFormat)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select export format" />
+              </SelectTrigger>
+              <SelectContent>
                 {formatOptions.map((option) => {
                   const Icon = option.icon;
                   return (
-                    <div key={option.value} className="flex items-center space-x-3">
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value} className="flex items-center cursor-pointer">
-                        <Icon className={`h-4 w-4 mr-2 ${option.color}`} />
-                        {option.label}
-                      </Label>
-                    </div>
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{option.label}</span>
+                      </div>
+                    </SelectItem>
                   );
                 })}
-              </div>
-            </RadioGroup>
+              </SelectContent>
+            </Select>
           </div>
           
           {/* Data Sections */}

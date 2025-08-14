@@ -24,18 +24,17 @@ export function DataTabs() {
       <Tabs defaultValue="travel" className="w-full">
         <div className="border-b">
           <div className="container mx-auto px-0">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-transparent h-auto p-0 gap-0">
+            <TabsList className="grid w-full grid-cols-6 bg-transparent h-auto p-0 gap-0">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="flex flex-col lg:flex-row items-center gap-1 lg:gap-2 px-2 lg:px-4 py-3 text-xs lg:text-sm font-medium data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none border-b-2 border-transparent"
+                    className="flex flex-col items-center gap-1 px-1 sm:px-2 lg:px-4 py-2 sm:py-3 text-xs font-medium data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none border-b-2 border-transparent"
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="truncate">{tab.label.split(' ')[0]}</span>
-                    <span className="hidden lg:inline">{tab.label.split(' ').slice(1).join(' ')}</span>
+                    <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="truncate text-[10px] sm:text-xs lg:text-sm">{tab.label.split(' ')[0]}</span>
                   </TabsTrigger>
                 );
               })}
