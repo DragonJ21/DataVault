@@ -1,50 +1,29 @@
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Edit, Trash2, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, User, Calendar, IdCard, Edit2 } from 'lucide-react';
 import { AddPersonalModal } from './add-personal-modal';
-import { api, invalidateQueries } from '@/lib/api';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { PersonalInfo } from '@shared/schema';
 
 export function PersonalTab() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingInfo, setEditingInfo] = useState<PersonalInfo | null>(null);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: personalInfo, isLoading } = useQuery({
+  const { data: personalInfo, isLoading } = useQuery<PersonalInfo>({
     queryKey: ['/api/personal-info'],
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/api/personal-info/${id}`),
-    onSuccess: () => {
-      invalidateQueries(['/api/personal-info']);
-      toast({ title: 'Personal information deleted successfully' });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Failed to delete personal information',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
   const handleEdit = () => {
-    setEditingInfo(personalInfo);
     setShowAddModal(true);
   };
 
-  const handleDelete = () => {
-    if (personalInfo && confirm('Are you sure you want to delete your personal information?')) {
-      deleteMutation.mutate(personalInfo.id);
-    }
-  };
-
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return 'Not provided';
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not specified';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -53,77 +32,91 @@ export function PersonalTab() {
   };
 
   if (isLoading) {
-    return <div>Loading personal information...</div>;
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Personal Information</h2>
+          <Button disabled className="h-9">
+            <Plus className="h-4 w-4 mr-2" />
+            Edit Info
+          </Button>
+        </div>
+        <div className="h-48 bg-muted rounded-lg animate-pulse" />
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="max-w-2xl">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Personal Information</h2>
+          <Button onClick={() => setShowAddModal(true)} className="h-9">
+            <Edit2 className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Edit Info</span>
+            <span className="sm:hidden">Edit</span>
+          </Button>
+        </div>
+
         {!personalInfo ? (
-          <Card className="border-dashed">
+          <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <User className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                No Personal Information
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 text-center">
-                Add your personal information to get started with your profile.
+              <User className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No personal information</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Add your basic personal details for complete records.
               </p>
               <Button onClick={() => setShowAddModal(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Personal Information
+                Add Personal Info
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-xl font-bold">Personal Information</CardTitle>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={handleEdit}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleDelete}
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className="h-5 w-5" />
+                Personal Details
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Full Name
-                  </label>
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">
-                    {personalInfo.full_name || 'Not provided'}
+              {personalInfo.full_name && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                  <p className="text-foreground">{personalInfo.full_name}</p>
+                </div>
+              )}
+
+              {personalInfo.dob && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-foreground">{formatDate(personalInfo.dob)}</p>
+                  </div>
+                </div>
+              )}
+
+              {personalInfo.passport_number && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Passport Number</label>
+                  <div className="flex items-center gap-2">
+                    <IdCard className="h-4 w-4 text-muted-foreground" />
+                    <Badge variant="outline" className="font-mono">
+                      {personalInfo.passport_number}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              {!personalInfo.full_name && !personalInfo.dob && !personalInfo.passport_number && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm">
+                    No personal details added yet. Click "Edit Info" to add your information.
                   </p>
                 </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Passport Number
-                  </label>
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">
-                    {personalInfo.passport_number || 'Not provided'}
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Date of Birth
-                  </label>
-                  <p className="text-lg font-medium text-gray-900 dark:text-white">
-                    {formatDate(personalInfo.dob)}
-                  </p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -131,11 +124,8 @@ export function PersonalTab() {
 
       <AddPersonalModal
         open={showAddModal}
-        onOpenChange={(open) => {
-          setShowAddModal(open);
-          if (!open) setEditingInfo(null);
-        }}
-        editingInfo={editingInfo}
+        onOpenChange={setShowAddModal}
+        personalInfo={personalInfo}
       />
     </>
   );

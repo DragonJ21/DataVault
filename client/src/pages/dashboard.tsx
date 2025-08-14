@@ -36,12 +36,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300 pb-16 md:pb-0">
+    <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <StatsCards />
-        <DataTabs />
+      <main className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+        <div className="space-y-6">
+          <StatsCards />
+          <DataTabs />
+        </div>
       </main>
 
       <MobileNav />

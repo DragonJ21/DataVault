@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import { MapPin, Plane, Briefcase, GraduationCap, Home, User } from 'lucide-react';
 import { TravelTab } from '../travel/travel-tab';
 import { FlightsTab } from '../flights/flights-tab';
@@ -19,37 +20,40 @@ export function DataTabs() {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+    <Card className="border-0 shadow-sm">
       <Tabs defaultValue="travel" className="w-full">
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 bg-transparent">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+        <div className="border-b">
+          <div className="container mx-auto px-0">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-transparent h-auto p-0 gap-0">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex flex-col lg:flex-row items-center gap-1 lg:gap-2 px-2 lg:px-4 py-3 text-xs lg:text-sm font-medium data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none border-b-2 border-transparent"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="truncate">{tab.label.split(' ')[0]}</span>
+                    <span className="hidden lg:inline">{tab.label.split(' ').slice(1).join(' ')}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           {tabs.map((tab) => {
             const Component = tab.component;
             return (
-              <TabsContent key={tab.id} value={tab.id} className="mt-0">
+              <TabsContent key={tab.id} value={tab.id} className="mt-0 space-y-4">
                 <Component />
               </TabsContent>
             );
           })}
         </div>
       </Tabs>
-    </div>
+    </Card>
   );
 }

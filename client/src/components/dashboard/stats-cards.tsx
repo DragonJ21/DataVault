@@ -62,19 +62,19 @@ export function StatsCards() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
+          <Card key={stat.title} className="border-0 shadow-sm">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                <div className="space-y-1">
+                  <p className="text-xs lg:text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <p className="text-xl lg:text-3xl font-bold text-foreground">{stat.value}</p>
                 </div>
-                <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
-                  <Icon className="h-6 w-6" />
+                <div className={`p-2 lg:p-3 rounded-lg ${getColorClasses(stat.color)}`}>
+                  <Icon className="h-4 w-4 lg:h-6 lg:w-6" />
                 </div>
               </div>
             </CardContent>

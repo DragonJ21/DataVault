@@ -1,54 +1,40 @@
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, MapPin, Calendar, FileText, Trash2, Edit2 } from 'lucide-react';
 import { AddTravelModal } from './add-travel-modal';
-import { api, invalidateQueries } from '@/lib/api';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { TravelHistory } from '@shared/schema';
 
 export function TravelTab() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TravelHistory | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterYear, setFilterYear] = useState('all');
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: travelHistory = [], isLoading } = useQuery({
+  const { data: travelHistory = [], isLoading } = useQuery<TravelHistory[]>({
     queryKey: ['/api/travel-history'],
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/api/travel-history/${id}`),
-    onSuccess: () => {
-      invalidateQueries(['/api/travel-history']);
-      toast({ title: 'Travel entry deleted successfully' });
+    mutationFn: async (id: string) => {
+      await apiRequest('DELETE', `/api/travel-history/${id}`);
     },
-    onError: (error) => {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/travel-history'] });
+      toast({ title: 'Entry deleted successfully' });
+    },
+    onError: () => {
       toast({
-        title: 'Failed to delete travel entry',
-        description: error.message,
+        title: 'Error deleting entry',
+        description: 'Please try again later.',
         variant: 'destructive',
       });
     },
   });
-
-  const filteredHistory = travelHistory.filter((entry: TravelHistory) => {
-    const matchesSearch = entry.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (entry.notes && entry.notes.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const entryYear = new Date(entry.date).getFullYear().toString();
-    const matchesYear = filterYear === 'all' || entryYear === filterYear;
-    
-    return matchesSearch && matchesYear;
-  });
-
-  const years = Array.from(new Set(travelHistory.map((entry: TravelHistory) => 
-    new Date(entry.date).getFullYear().toString()
-  ))).sort((a, b) => parseInt(b) - parseInt(a));
 
   const handleEdit = (entry: TravelHistory) => {
     setEditingEntry(entry);
@@ -61,108 +47,100 @@ export function TravelTab() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   if (isLoading) {
-    return <div>Loading travel history...</div>;
-  }
-
-  return (
-    <>
-      {/* Search and Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search destinations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Select value={filterYear} onValueChange={setFilterYear}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="All Years" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Years</SelectItem>
-              {years.map((year) => (
-                <SelectItem key={year} value={year}>{year}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={() => setShowAddModal(true)}>
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Travel History</h2>
+          <Button disabled className="h-9">
             <Plus className="h-4 w-4 mr-2" />
             Add Trip
           </Button>
         </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 bg-muted rounded-lg animate-pulse" />
+          ))}
+        </div>
       </div>
+    );
+  }
 
-      {/* Travel History Table */}
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredHistory.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  {searchTerm || filterYear !== 'all' ? 'No trips match your filters' : 'No travel history yet. Add your first trip!'}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredHistory.map((entry: TravelHistory) => (
-                <TableRow key={entry.id}>
-                  <TableCell>{formatDate(entry.date)}</TableCell>
-                  <TableCell>{entry.destination}</TableCell>
-                  <TableCell className="max-w-xs truncate">{entry.notes || 'No notes'}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Travel History</h2>
+          <Button onClick={() => setShowAddModal(true)} className="h-9">
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Add Trip</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
+        </div>
+
+        {travelHistory.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No travel history yet</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Start tracking your travels by adding your first trip.
+              </p>
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Trip
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-3">
+            {travelHistory.map((entry) => (
+              <Card key={entry.id} className="border-l-4 border-l-primary">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-foreground">{entry.destination}</h3>
+                        <Badge variant="secondary" className="text-xs">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(entry.date).toLocaleDateString()}
+                        </Badge>
+                      </div>
+                      
+                      {entry.notes && (
+                        <div className="flex items-start gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-muted-foreground">{entry.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1 ml-2">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(entry)}
+                        className="h-8 w-8 p-0"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit2 className="h-3 w-3" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(entry.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         disabled={deleteMutation.isPending}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Pagination */}
-      {filteredHistory.length > 0 && (
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            Showing {filteredHistory.length} of {travelHistory.length} trips
-          </p>
-        </div>
-      )}
 
       <AddTravelModal
         open={showAddModal}
