@@ -1,0 +1,141 @@
+Build a fully functional, responsive web application with mobile and desktop compatibility that stores, manages, and exports my personal and travel history data, with AviationStack API integration for flight auto-fill.
+
+Tech Stack:
+	•	Frontend: React + Tailwind CSS for responsive UI and light/dark theme toggle.
+	•	Backend: Node.js + Express.
+	•	Database: SQLite (default) but structured so it can easily swap to MongoDB.
+	•	Auth: Basic login/register with JWT for security.
+	•	API Integration: AviationStack API for live flight details auto-fill.
+
+⸻
+
+Core Features
+	1.	Light/Dark Mode Toggle — Switch themes, persist preference in localStorage.
+	2.	Data Sections (CRUD):
+	•	Travel history
+	•	Flight details (auto-fill from AviationStack)
+	•	Employer history
+	•	Education history
+	•	Past addresses
+	•	Personal info
+	3.	Export Button — Export all stored data in PDF, CSV, Excel, or JSON.
+	4.	Search & Filter — For each section.
+	5.	Responsive UI — Works on web & mobile.
+	6.	Secure API — JWT-protected CRUD endpoints.
+
+⸻
+
+Database Schema
+
+Table: users
+	•	id (PK)
+	•	username (string, unique)
+	•	email (string, unique)
+	•	password_hash (string)
+	•	created_at (datetime)
+
+Table: personal_info
+	•	id (PK)
+	•	user_id (FK → users.id)
+	•	full_name (string)
+	•	passport_number (string)
+	•	dob (date)
+
+Table: travel_history
+	•	id (PK)
+	•	user_id (FK)
+	•	date (date)
+	•	destination (string)
+	•	notes (text)
+
+Table: flights
+	•	id (PK)
+	•	user_id (FK)
+	•	flight_number (string)
+	•	airline (string)
+	•	departure_airport (string)
+	•	arrival_airport (string)
+	•	departure_time (datetime)
+	•	arrival_time (datetime)
+	•	gate (string)
+	•	status (string)
+
+Table: employers
+	•	id (PK)
+	•	user_id (FK)
+	•	company_name (string)
+	•	role (string)
+	•	start_date (date)
+	•	end_date (date)
+	•	notes (text)
+
+Table: education
+	•	id (PK)
+	•	user_id (FK)
+	•	institution (string)
+	•	degree (string)
+	•	start_date (date)
+	•	end_date (date)
+
+Table: addresses
+	•	id (PK)
+	•	user_id (FK)
+	•	address (string)
+	•	city (string)
+	•	state (string)
+	•	country (string)
+	•	from_date (date)
+	•	to_date (date)
+
+⸻
+
+API Endpoint Blueprint
+
+Auth:
+	•	POST /api/auth/register → Create account
+	•	POST /api/auth/login → Login, return JWT
+
+Personal Info:
+	•	GET /api/personal-info (JWT) → Get personal info
+	•	POST /api/personal-info (JWT) → Add personal info
+	•	PUT /api/personal-info/:id (JWT) → Update personal info
+	•	DELETE /api/personal-info/:id (JWT) → Delete personal info
+
+Travel History:
+	•	GET /api/travel-history
+	•	POST /api/travel-history
+	•	PUT /api/travel-history/:id
+	•	DELETE /api/travel-history/:id
+
+Flights:
+	•	GET /api/flights
+	•	POST /api/flights (auto-fetch from AviationStack if flight_number given)
+	•	PUT /api/flights/:id
+	•	DELETE /api/flights/:id
+
+Employers, Education, Addresses: (same CRUD pattern as above)
+
+Export:
+	•	GET /api/export/:format → Exports all data for the logged-in user in pdf, csv, excel, or json
+
+⸻
+
+Implementation Notes
+	•	Store AviationStack API key in .env and load in backend.
+	•	Use Axios for API calls.
+	•	Validate all form inputs in frontend & backend.
+	•	Use reusable form components in React.
+	•	Apply global dark/light theme via Tailwind config & context.
+	•	Ensure mobile breakpoints work perfectly.
+	•	Use jspdf for PDF, xlsx for Excel/CSV, and JSON.stringify for JSON export.
+	•	Protect all API routes with JWT middleware.
+
+⸻
+
+Deliverables:
+	•	Clean file structure: frontend & backend directories.
+	•	Full source code.
+	•	README with install & run instructions, .env example, AviationStack setup.
+	•	Working demo in local dev.
+
+Build the complete project in one pass.
