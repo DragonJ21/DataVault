@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type PersonalInfo, type InsertPersonalInfo, type TravelHistory, type InsertTravelHistory, type Flight, type InsertFlight, type Employer, type InsertEmployer, type Education, type InsertEducation, type Address, type InsertAddress } from "@shared/schema";
+import { type User, type DatabaseUser, type PersonalInfo, type InsertPersonalInfo, type TravelHistory, type InsertTravelHistory, type Flight, type InsertFlight, type Employer, type InsertEmployer, type Education, type InsertEducation, type Address, type InsertAddress } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -6,7 +6,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: DatabaseUser): Promise<User>;
 
   // Personal info methods
   getPersonalInfo(userId: string): Promise<PersonalInfo | undefined>;
@@ -67,7 +67,7 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.email === email);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: DatabaseUser): Promise<User> {
     const id = randomUUID();
     const user: User = { 
       ...insertUser, 
@@ -85,7 +85,13 @@ export class MemStorage implements IStorage {
 
   async createPersonalInfo(userId: string, info: InsertPersonalInfo): Promise<PersonalInfo> {
     const id = randomUUID();
-    const personalInfo: PersonalInfo = { ...info, id, user_id: userId };
+    const personalInfo: PersonalInfo = { 
+      id, 
+      user_id: userId,
+      full_name: info.full_name ?? null,
+      passport_number: info.passport_number ?? null,
+      dob: info.dob ?? null
+    };
     this.personalInfo.set(id, personalInfo);
     return personalInfo;
   }
@@ -115,7 +121,13 @@ export class MemStorage implements IStorage {
 
   async createTravelEntry(userId: string, entry: InsertTravelHistory): Promise<TravelHistory> {
     const id = randomUUID();
-    const travelEntry: TravelHistory = { ...entry, id, user_id: userId };
+    const travelEntry: TravelHistory = { 
+      id, 
+      user_id: userId,
+      date: entry.date,
+      destination: entry.destination,
+      notes: entry.notes ?? null
+    };
     this.travelHistory.set(id, travelEntry);
     return travelEntry;
   }
@@ -148,7 +160,18 @@ export class MemStorage implements IStorage {
 
   async createFlight(userId: string, flight: InsertFlight): Promise<Flight> {
     const id = randomUUID();
-    const flightEntry: Flight = { ...flight, id, user_id: userId };
+    const flightEntry: Flight = { 
+      id, 
+      user_id: userId,
+      flight_number: flight.flight_number,
+      airline: flight.airline,
+      departure_airport: flight.departure_airport,
+      arrival_airport: flight.arrival_airport,
+      departure_time: flight.departure_time ?? null,
+      arrival_time: flight.arrival_time ?? null,
+      status: flight.status ?? null,
+      gate: flight.gate ?? null
+    };
     this.flights.set(id, flightEntry);
     return flightEntry;
   }
@@ -178,7 +201,15 @@ export class MemStorage implements IStorage {
 
   async createEmployer(userId: string, employer: InsertEmployer): Promise<Employer> {
     const id = randomUUID();
-    const employerEntry: Employer = { ...employer, id, user_id: userId };
+    const employerEntry: Employer = { 
+      id, 
+      user_id: userId,
+      company_name: employer.company_name,
+      role: employer.role,
+      start_date: employer.start_date,
+      end_date: employer.end_date ?? null,
+      notes: employer.notes ?? null
+    };
     this.employers.set(id, employerEntry);
     return employerEntry;
   }
@@ -208,7 +239,14 @@ export class MemStorage implements IStorage {
 
   async createEducation(userId: string, education: InsertEducation): Promise<Education> {
     const id = randomUUID();
-    const educationEntry: Education = { ...education, id, user_id: userId };
+    const educationEntry: Education = { 
+      id, 
+      user_id: userId,
+      institution: education.institution,
+      degree: education.degree,
+      start_date: education.start_date,
+      end_date: education.end_date ?? null
+    };
     this.education.set(id, educationEntry);
     return educationEntry;
   }
@@ -238,7 +276,16 @@ export class MemStorage implements IStorage {
 
   async createAddress(userId: string, address: InsertAddress): Promise<Address> {
     const id = randomUUID();
-    const addressEntry: Address = { ...address, id, user_id: userId };
+    const addressEntry: Address = { 
+      id, 
+      user_id: userId,
+      address: address.address,
+      city: address.city,
+      state: address.state ?? null,
+      country: address.country,
+      from_date: address.from_date,
+      to_date: address.to_date ?? null
+    };
     this.addresses.set(id, addressEntry);
     return addressEntry;
   }

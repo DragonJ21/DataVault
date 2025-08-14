@@ -74,6 +74,9 @@ export const addresses = pgTable("addresses", {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   created_at: true,
+  password_hash: true,
+}).extend({
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export const insertPersonalInfoSchema = createInsertSchema(personal_info).omit({
@@ -109,6 +112,7 @@ export const insertAddressSchema = createInsertSchema(addresses).omit({
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type DatabaseUser = Omit<InsertUser, 'password'> & { password_hash: string };
 export type PersonalInfo = typeof personal_info.$inferSelect;
 export type InsertPersonalInfo = z.infer<typeof insertPersonalInfoSchema>;
 export type TravelHistory = typeof travel_history.$inferSelect;
