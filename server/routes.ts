@@ -185,6 +185,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Convert string timestamps to Date objects for database storage
+      if (flightData.departure_time && typeof flightData.departure_time === 'string') {
+        flightData.departure_time = new Date(flightData.departure_time);
+      }
+      if (flightData.arrival_time && typeof flightData.arrival_time === 'string') {
+        flightData.arrival_time = new Date(flightData.arrival_time);
+      }
+
       console.log('Final flight data before validation:', JSON.stringify(flightData, null, 2));
       const validatedData = insertFlightSchema.parse(flightData);
       const flight = await storage.createFlight(req.userId!, validatedData);
