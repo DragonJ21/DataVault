@@ -382,12 +382,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get active flights for autofill suggestions
+  app.get("/api/flights/active-suggestions", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const apiKey = process.env.AVIATION_STACK_API_KEY || process.env.AVIATIONSTACK_API_KEY || '';
+      if (!apiKey) {
+        return res.json({ flights: [{ number: "TEST123", airline: "Demo Flight" }] });
+      }
+
+      const response = await fetch(`http://api.aviationstack.com/v1/flights?access_key=${apiKey}&limit=10`);
+      if (!response.ok) {
+        return res.json({ flights: [{ number: "TEST123", airline: "Demo Flight" }] });
+      }
+
+      const data = await response.json();
+      const activeFlights = data.data?.map((flight: any) => ({
+        number: flight.flight?.iata || flight.flight?.icao,
+        airline: flight.airline?.name || 'Unknown'
+      })).filter((f: any) => f.number) || [];
+
+      res.json({ 
+        flights: activeFlights.length > 0 ? activeFlights.slice(0, 5) : [{ number: "TEST123", airline: "Demo Flight" }]
+      });
+    } catch (error) {
+      res.json({ flights: [{ number: "TEST123", airline: "Demo Flight" }] });
+    }
+  });
+
   // Flight auto-fill route
   app.get("/api/flights/autofill/:flightNumber", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const flightData = await fetchFlightData(req.params.flightNumber);
       if (!flightData) {
-        return res.status(404).json({ message: "Flight not found" });
+        // Try to get some active flights to suggest
+        try {
+          const apiKey = process.env.AVIATION_STACK_API_KEY || process.env.AVIATIONSTACK_API_KEY || '';
+          const activeResponse = await fetch(`http://api.aviationstack.com/v1/flights?access_key=${apiKey}&limit=3`);
+          if (activeResponse.ok) {
+            const activeData = await activeResponse.json();
+            if (activeData.data && activeData.data.length > 0) {
+              const suggestions = activeData.data
+                .map((f: any) => f.flight?.iata || f.flight?.icao)
+                .filter(Boolean)
+                .slice(0, 3);
+              
+              return res.status(404).json({ 
+                message: "Flight not found", 
+                suggestions: suggestions.length > 0 ? suggestions : ["TEST123", "DEMO456"]
+              });
+            }
+          }
+        } catch (e) {
+          // Fall back to demo suggestions
+        }
+        
+        return res.status(404).json({ 
+          message: "Flight not found",
+          suggestions: ["TEST123", "DEMO456"]
+        });
       }
       res.json(flightData);
     } catch (error) {

@@ -62,6 +62,25 @@ export async function fetchFlightData(flightNumber: string): Promise<FlightData 
     // If no flight found, provide helpful sample data for common test flights
     console.log(`No flight data found for flight number: ${cleanFlightNumber}`);
     
+    // Get a list of currently active flights to suggest to users
+    try {
+      const activeFlightsResponse = await fetch(
+        `http://api.aviationstack.com/v1/flights?access_key=${apiKey}&limit=3`
+      );
+      
+      if (activeFlightsResponse.ok) {
+        const activeData = await activeFlightsResponse.json();
+        if (activeData.data && activeData.data.length > 0) {
+          console.log('Try these currently active flights for autofill:');
+          activeData.data.forEach((flight: any) => {
+            console.log(`- ${flight.flight?.iata || flight.flight?.icao} (${flight.airline?.name})`);
+          });
+        }
+      }
+    } catch (e) {
+      // Silent fail for active flight suggestion
+    }
+
     // Return sample data for demonstration purposes when using common test flight numbers
     const testFlights: Record<string, FlightData> = {
       'TEST123': {

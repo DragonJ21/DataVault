@@ -101,10 +101,20 @@ export function AddFlightModal({ open, onOpenChange, editingFlight }: AddFlightM
       }
 
       toast({ title: 'Flight data auto-filled successfully' });
-    } catch (error) {
+    } catch (error: any) {
+      let description = `Flight ${flightNumber} not found. Enter details manually.`;
+      
+      // Check if the error response includes suggestions
+      if (error?.response?.data?.suggestions) {
+        const suggestions = error.response.data.suggestions.slice(0, 3).join(', ');
+        description = `Flight ${flightNumber} not found. Try these active flights: ${suggestions}`;
+      } else {
+        description = `Flight ${flightNumber} not found. Only current/scheduled flights work with autofill.`;
+      }
+      
       toast({
         title: 'Auto-fill failed',
-        description: `Flight ${flightNumber} not found. Try "TEST123" or "DEMO456" for demo data, or enter details manually.`,
+        description,
         variant: 'destructive',
       });
     } finally {
