@@ -21,11 +21,18 @@ import {
 import { Input } from '@/components/ui/input';
 import type { TravelHistory, Flight, Employer, Education, Address, PersonalInfo } from '@shared/schema';
 
+// Helper function
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+}
+
 interface UnifiedItem {
   id: string;
   type: 'travel' | 'flight' | 'employer' | 'education' | 'address' | 'personal';
   title: string;
   subtitle: string;
+  description?: string;
   date?: string;
   badge?: string;
   badgeColor?: string;
@@ -36,6 +43,7 @@ interface UnifiedItem {
 export function UnifiedList() {
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
 
   // Fetch all data
   const { data: travelHistory = [] } = useQuery<TravelHistory[]>({
@@ -79,8 +87,9 @@ export function UnifiedList() {
     ...flights.map(item => ({
       id: item.id,
       type: 'flight' as const,
-      title: `${item.flight_number} - ${item.airline}`,
-      subtitle: `${item.departure_airport} → ${item.arrival_airport}`,
+      title: `${item.flight_number}`,
+      subtitle: `${item.airline}`,
+      description: `${truncateText(item.departure_airport, 20)} → ${truncateText(item.arrival_airport, 20)}`,
       date: item.departure_time ? new Date(item.departure_time).toLocaleDateString() : undefined,
       badge: item.status || 'Scheduled',
       badgeColor: getFlightStatusColor(item.status),
@@ -154,6 +163,12 @@ export function UnifiedList() {
       );
     });
 
+  const handleItemClick = (item: UnifiedItem) => {
+    setSelectedItem(item);
+    // Here you could open edit modals or detail views
+    console.log('Selected item:', item);
+  };
+
   const filters = [
     { value: 'all', label: 'All', icon: FileText },
     { value: 'travel', label: 'Travel', icon: MapPin },
@@ -177,8 +192,8 @@ export function UnifiedList() {
         />
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex overflow-x-auto gap-2 pb-2">
+      {/* Filter tabs - Mobile optimized */}
+      <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1">
         {filters.map((filterOption) => {
           const Icon = filterOption.icon;
           const count = filterOption.value === 'all' 
@@ -191,13 +206,15 @@ export function UnifiedList() {
               variant={filter === filterOption.value ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter(filterOption.value)}
-              className="flex items-center gap-2 whitespace-nowrap"
+              className="flex items-center gap-1.5 whitespace-nowrap shrink-0 h-8 px-2.5 text-xs"
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3 w-3" />
               <span>{filterOption.label}</span>
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {count}
-              </Badge>
+              {count > 0 && (
+                <Badge variant="secondary" className="ml-0.5 text-[10px] px-1 h-4">
+                  {count}
+                </Badge>
+              )}
             </Button>
           );
         })}
@@ -227,8 +244,12 @@ export function UnifiedList() {
           filteredItems.map((item) => {
             const Icon = item.icon;
             return (
-              <Card key={`${item.type}-${item.id}`} className="transition-all hover:shadow-md">
-                <CardContent className="p-4">
+              <Card 
+                key={`${item.type}-${item.id}`} 
+                className="transition-all hover:shadow-md cursor-pointer active:scale-[0.98]"
+                onClick={() => handleItemClick(item)}
+              >
+                <CardContent className="p-3">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -243,10 +264,17 @@ export function UnifiedList() {
                             {item.title}
                           </h3>
                           <p className="text-sm text-muted-foreground mt-1 overflow-hidden">
-                            <span className="block truncate">
-                              {item.subtitle}
+                            <span className="block break-words">
+                              {item.subtitle.length > 50 ? `${item.subtitle.substring(0, 50)}...` : item.subtitle}
                             </span>
                           </p>
+                          {item.description && (
+                            <p className="text-xs text-muted-foreground/80 mt-1 overflow-hidden">
+                              <span className="block break-words">
+                                {item.description.length > 60 ? `${item.description.substring(0, 60)}...` : item.description}
+                              </span>
+                            </p>
+                          )}
                           {item.date && (
                             <div className="flex items-center gap-1 mt-2">
                               <Calendar className="h-3 w-3 text-muted-foreground" />
@@ -255,16 +283,16 @@ export function UnifiedList() {
                           )}
                         </div>
                         
-                        <div className="flex flex-col items-end gap-2 ml-2">
+                        <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
                           {item.badge && (
                             <Badge 
                               variant="secondary" 
-                              className={`text-xs ${item.badgeColor || ''}`}
+                              className={`text-xs px-2 py-0.5 ${item.badgeColor || ''}`}
                             >
                               {item.badge}
                             </Badge>
                           )}
-                          <Badge variant="outline" className="text-xs capitalize">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
                             {item.type}
                           </Badge>
                         </div>
