@@ -104,7 +104,7 @@ export function AddFlightModal({ open, onOpenChange, editingFlight }: AddFlightM
     } catch (error) {
       toast({
         title: 'Auto-fill failed',
-        description: 'Could not fetch flight data. Please enter details manually.',
+        description: `Flight ${flightNumber} not found. Try "TEST123" or "DEMO456" for demo data, or enter details manually.`,
         variant: 'destructive',
       });
     } finally {
