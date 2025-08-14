@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertPersonalInfoSchema, insertTravelHistorySchema, insertFlightSchema, insertEmployerSchema, insertEducationSchema, insertAddressSchema } from "@shared/schema";
+import { z } from "zod";
 import { hashPassword, comparePassword, generateToken, authenticateToken, type AuthRequest } from "./services/auth";
 import { fetchFlightData } from "./services/aviation-stack";
 import { exportUserData } from "./services/export";
@@ -174,6 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/flights", authenticateToken, async (req: AuthRequest, res) => {
     try {
       let flightData = req.body;
+      console.log('Received flight data:', JSON.stringify(flightData, null, 2));
       
       // Try to auto-fill from AviationStack if flight_number is provided
       if (flightData.flight_number && !flightData.airline) {
@@ -183,11 +185,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log('Final flight data before validation:', JSON.stringify(flightData, null, 2));
       const validatedData = insertFlightSchema.parse(flightData);
       const flight = await storage.createFlight(req.userId!, validatedData);
       res.json(flight);
     } catch (error) {
-      res.status(400).json({ message: "Invalid input", error });
+      console.error('Flight creation error:', error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          message: "Invalid input", 
+          error: error.errors,
+          issues: error.issues 
+        });
+      } else {
+        res.status(400).json({ message: "Invalid input", error: error?.message || 'Unknown error' });
+      }
     }
   });
 
