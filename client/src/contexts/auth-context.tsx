@@ -16,13 +16,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('auth-token'));
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/auth/me'],
-    enabled: !!token,
-    retry: false,
-  });
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        } else {
+          setToken(null);
+          localStorage.removeItem('auth-token');
+        }
+      } catch (error) {
+        setToken(null);
+        localStorage.removeItem('auth-token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [token]);
 
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
@@ -31,8 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: (data) => {
       setToken(data.token);
+      setUser(data.user);
       localStorage.setItem('auth-token', data.token);
-      queryClient.setQueryData(['/api/auth/me'], data.user);
     },
   });
 
@@ -43,8 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: (data) => {
       setToken(data.token);
+      setUser(data.user);
       localStorage.setItem('auth-token', data.token);
-      queryClient.setQueryData(['/api/auth/me'], data.user);
     },
   });
 
@@ -58,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setToken(null);
+    setUser(null);
     localStorage.removeItem('auth-token');
     queryClient.clear();
   };
@@ -81,12 +109,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user: user?.user || null,
+        user,
         isLoading,
         login,
         register,
         logout,
-        isAuthenticated: !!token && !!user?.user,
+        isAuthenticated: !!token && !!user,
       }}
     >
       {children}

@@ -31,7 +31,7 @@ export function Header() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               <Link href="/">
-                <a className="text-primary border-b-2 border-primary pb-1 px-1 text-sm font-medium">Dashboard</a>
+                <span className="text-primary border-b-2 border-primary pb-1 px-1 text-sm font-medium cursor-pointer">Dashboard</span>
               </Link>
             </nav>
 
