@@ -144,6 +144,9 @@ export const insertTravelHistorySchema = createInsertSchema(travel_history).omit
 export const insertFlightSchema = createInsertSchema(flights).omit({
   id: true,
   user_id: true,
+}).extend({
+  departure_time: z.union([z.string(), z.date()]).optional().nullable(),
+  arrival_time: z.union([z.string(), z.date()]).optional().nullable(),
 });
 
 export const insertEmployerSchema = createInsertSchema(employers).omit({
