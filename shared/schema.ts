@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, date, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -69,6 +69,58 @@ export const addresses = pgTable("addresses", {
   from_date: date("from_date").notNull(),
   to_date: date("to_date"),
 });
+
+// Relations
+export const usersRelations = relations(users, ({ many, one }) => ({
+  personalInfo: one(personal_info),
+  travelHistory: many(travel_history),
+  flights: many(flights),
+  employers: many(employers),
+  education: many(education),
+  addresses: many(addresses),
+}));
+
+export const personalInfoRelations = relations(personal_info, ({ one }) => ({
+  user: one(users, {
+    fields: [personal_info.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const travelHistoryRelations = relations(travel_history, ({ one }) => ({
+  user: one(users, {
+    fields: [travel_history.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const flightsRelations = relations(flights, ({ one }) => ({
+  user: one(users, {
+    fields: [flights.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const employersRelations = relations(employers, ({ one }) => ({
+  user: one(users, {
+    fields: [employers.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const educationRelations = relations(education, ({ one }) => ({
+  user: one(users, {
+    fields: [education.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const addressesRelations = relations(addresses, ({ one }) => ({
+  user: one(users, {
+    fields: [addresses.user_id],
+    references: [users.id],
+  }),
+}));
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
