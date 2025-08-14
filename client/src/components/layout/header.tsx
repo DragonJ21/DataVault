@@ -2,7 +2,8 @@ import { Link } from 'wouter';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/contexts/theme-context';
 import { Button } from '@/components/ui/button';
-import { Moon, Sun, Download, Plane, User } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Moon, Sun, Download, Plane, User, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { ExportModal } from '../export/export-modal';
 
@@ -58,15 +59,23 @@ export function Header() {
               </Button>
               
               {/* User Menu */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                className="h-9 w-9 p-0"
-                title="Logout"
-              >
-                <User className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
